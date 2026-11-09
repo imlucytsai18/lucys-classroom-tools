@@ -8,6 +8,35 @@
 
 /* V1.2 teacher workflow */
 .edit-row{grid-template-columns:1.4fr 1fr 1fr auto}.edit-row .time-readout{font-weight:900;color:var(--olive);padding:12px 4px;white-space:nowrap}.edit-row .duration-input{max-width:130px}.edit-row .move-controls{display:flex;gap:5px}.edit-row .move-controls button{padding:9px 11px}.edit-row .move-controls button:disabled{opacity:.35;cursor:not-allowed}.settings .section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.summary{background:#e7edcf;padding:14px;border-radius:15px;font-weight:800;line-height:1.8}.field input[type=time]{min-height:43px}.hint strong{color:var(--deep)}.preview-table{width:100%;border-collapse:collapse;margin-top:10px}.preview-table td,.preview-table th{padding:9px;text-align:left;border-bottom:1px solid #d7dfc3}.preview-table th{color:var(--olive)}.preview-table tr:nth-child(even){background:#f7f5e7}.room-duration{font-weight:800;padding:11px 2px}.sr-note{font-size:13px;color:#697a53}.settings{max-width:1180px}body.focus .toolbar{position:fixed;bottom:10px;right:10px;z-index:20;background:transparent}body.focus .toolbar .brand,body.focus #editBtn,body.focus #viewBtn{display:none}body.focus .board{min-height:100vh}body.focus #fullBtn{opacity:.55}@media(max-width:850px){.edit-row{grid-template-columns:1fr 1fr}.edit-row .move-controls{grid-column:1/-1}}@media(max-width:480px){.edit-row{grid-template-columns:1fr}.edit-row .move-controls{grid-column:auto}}
+
+/* V1.3: 16:9 student presentation fitted to the available viewport */
+body.focus{overflow:hidden;background:#dce4c8}
+body.focus .board{position:fixed;left:0;top:0;width:1600px;height:900px;min-height:0!important;padding:22px 28px;gap:15px;transform-origin:top left;overflow:hidden;display:grid;grid-template-rows:115px 410px minmax(0,1fr) 35px}
+body.focus .top{min-height:0}.focus .heading h1{font-size:55px}.focus .eyebrow{font-size:20px}.focus .mascot{font-size:60px}.focus .clock{padding:9px 18px}.focus .clock strong{font-size:44px}
+body.focus .main{min-height:0;height:100%;grid-template-columns:1fr 1.2fr .85fr;gap:18px}
+body.focus .panel{padding:22px;border-width:3px;border-radius:25px;box-shadow:0 4px 0 #a8b37a55}
+body.focus .panel-title{font-size:21px;padding:7px 17px}
+body.focus .subject{font-size:90px;margin:8px 0;padding:7px 17px}
+body.focus .subject-time{font-size:22px}
+body.focus .timer{font-size:89px;margin:5px 0;white-space:nowrap}
+body.focus .progress-track{height:28px;margin:15px 0 12px}
+body.focus .rabbit{font-size:37px;top:-28px}
+body.focus .progress-meta{font-size:18px}
+body.focus .attendance{gap:8px}.focus .count{padding:11px;font-size:19px}.focus .count b{font-size:43px}
+body.focus .schedule{min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:14px 20px}
+body.focus .schedule h2{font-size:26px;margin:0 0 8px;flex:0 0 auto}
+body.focus .timeline{display:grid;grid-template-columns:repeat(var(--timeline-cols,5),minmax(0,1fr));grid-template-rows:repeat(var(--timeline-rows,1),minmax(0,1fr));gap:8px;overflow:hidden;padding:2px 3px 5px;flex:1;min-height:0}
+body.focus .step{min-width:0;min-height:0;padding:6px 5px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;border-radius:14px;transform:none}
+body.focus .step.active{border-width:3px;transform:none}
+body.focus .step .symbol{font-size:24px;line-height:1.1}
+body.focus .step .name{font-size:19px;margin:3px 0;white-space:nowrap}
+body.focus .step .hours{font-size:14px;white-space:nowrap}
+body.focus .step .state{font-size:12px;margin-top:2px}
+body.focus .timeline.dense .step{padding:2px}.focus .timeline.dense .symbol{font-size:17px}.focus .timeline.dense .name{font-size:15px}.focus .timeline.dense .hours{font-size:11px}.focus .timeline.dense .state{font-size:10px}
+body.focus .notice{font-size:21px;padding:0;align-self:center}
+body.focus .toolbar{z-index:200;position:fixed;right:10px;bottom:8px;padding:0}
+body.focus #fullBtn{opacity:.3;padding:6px 9px;font-size:12px}
+body.focus #fullBtn:hover,body.focus #fullBtn:focus-visible{opacity:1}
 </style>
 </head>
 <body>
@@ -77,5 +106,28 @@ $('saveBtn').onclick=()=>{const next={date:$('examDate').value,start:$('firstSta
 $('resetBtn').onclick=()=>{if(confirm('確定恢復 V1.2 預設考程？尚未儲存的設定會被覆蓋。')){data=defaults();loadForm();setText('saveMessage','已載入預設考程，請按「儲存」套用。')}};
 setInterval(()=>{if(!document.body.classList.contains('editing'))render()},1000);render();
 })();
+
+// Fit the entire 1600×900 student canvas into the visible viewport without scrolling.
+function fitStudentBoard(){
+ const board=document.getElementById('board');
+ if(!document.body.classList.contains('focus')){board.style.transform='';board.style.left='';board.style.top='';return;}
+ const w=window.innerWidth,h=window.innerHeight;
+ const scale=Math.min(w/1600,h/900);
+ board.style.transform=`scale(${scale})`;
+ board.style.left=`${Math.max(0,(w-1600*scale)/2)}px`;
+ board.style.top=`${Math.max(0,(h-900*scale)/2)}px`;
+ const steps=document.querySelectorAll('#timeline .step').length;
+ const cols=steps<=6?Math.max(1,steps):steps<=12?6:Math.min(8,Math.ceil(steps/3));
+ const rows=Math.max(1,Math.ceil(steps/cols));
+ const tl=document.getElementById('timeline');
+ tl.style.setProperty('--timeline-cols',cols);
+ tl.style.setProperty('--timeline-rows',rows);
+ tl.classList.toggle('dense',steps>10);
+}
+window.addEventListener('resize',fitStudentBoard);
+new MutationObserver(fitStudentBoard).observe(document.body,{attributes:true,attributeFilter:['class']});
+new MutationObserver(fitStudentBoard).observe(document.getElementById('timeline'),{childList:true});
+document.getElementById('fullBtn').addEventListener('click',()=>requestAnimationFrame(fitStudentBoard));
+document.getElementById('viewBtn').addEventListener('click',()=>requestAnimationFrame(fitStudentBoard));
 </script>
 </body></html>
